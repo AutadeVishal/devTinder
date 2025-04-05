@@ -1,7 +1,7 @@
 const mongoose=require('mongoose');
 const connectDB=async ()=>{
     try{
-        await mongoose.connect("Secret Data Bery Secret").then(()=>{
+        await mongoose.connect("").then(()=>{
             console.log("MongoDB connected successfully")
         })
         
