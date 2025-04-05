@@ -1,7 +1,7 @@
 const mongoose=require('mongoose');
 const connectDB=async ()=>{
     try{
-        await mongoose.connect("mongodb+srv://autadevishalvijay:Vishal1144@cluster0.xukjcup.mongodb.net/devTinder").then(()=>{
+        await mongoose.connect("Secret Data Bery Secret").then(()=>{
             console.log("MongoDB connected successfully")
         })
         
