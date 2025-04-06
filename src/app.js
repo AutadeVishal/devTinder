@@ -2,6 +2,7 @@ const express = require('express');
 const app = express();
 const connectDB=require('./config/database');
 const User=require('./models/user');
+
 app.use(express.json());//converts the incoming request body to JSON format
 connectDB()
 .then(()=>app.listen(3000, () => {
@@ -41,7 +42,7 @@ app.post('/signup',async (req,res)=>{
     res.status(201).json({ message: 'User created successfully' });
   } catch (err) {
     console.error('Error in /signup:', err.message);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ error: err.message });
   }
 
 
@@ -101,18 +102,30 @@ app.delete('/delete',async (req,res)=>{
 });
 
 
-//API for Update User
-app.patch('/user',async (req,res)=>{
-  const data=req.body;
-  try{
-    const userId=data._id;
-   const user= await User.findByIdAndUpdate({_id:userId},data,{returnDocument:"before"});
-   //This Return Document is part of Options which returns the value to const variable "before" update or "after" update
-console.log(user);
-    res.send("User Updated Succesfully");
-  }
-  catch(err){
-    console.log(err.message);
+const mongoose = require('mongoose');
+
+app.patch('/user', async (req, res) => {
+  const data = req.body;
+  console.log(data);
+  try {
+    let user;
+
+    if (data._id) {
+      user = await User.findByIdAndUpdate(data._id, data, { new: true,runValidators:true },);
+    } else if (data.email) {
+      user = await User.findOneAndUpdate({ email: data.email }, data, { new: true ,runValidators:true});
+    } else {
+      return res.status(400).json({ error: "Missing identifier (_id or email)" });
+    }
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    console.log("Updated user:", user);
+    res.send("User Updated Successfully");
+  } catch (err) {
+    console.log("Error in /user PATCH:", err.message);
     res.status(400).send("Something Went Wrong");
   }
-})
+});
