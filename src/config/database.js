@@ -1,7 +1,7 @@
 const mongoose=require('mongoose');
 const connectDB=async ()=>{
     try{
-        await mongoose.connect("").then(()=>{
+        await mongoose.connect("Secreet").then(()=>{
             console.log("MongoDB connected successfully")
         })
         

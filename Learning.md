@@ -16,3 +16,4 @@
      ```
 5. Schema->Model->object of Model/(instance of model)->Save in database
 6. app.use(express.json()); to convert json to normal object in javascript
+7. Any other data apart from as described in Schema Can not be updated using Patch

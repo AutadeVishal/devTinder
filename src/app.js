@@ -81,3 +81,38 @@ app.get('/feed',async (req,res)=>{
     res.status(500).json({error:"Internal server error"})
   };
 });
+
+//API for Delete User
+app.delete('/delete',async (req,res)=>{
+  const userID=req.body._id;
+  try{
+    const user=await User.findByIdAndDelete(userID);
+    //shorthand for user.findOneAndDelete({_id:userID});
+    if(!user)res.status(404).json({error:"User not found"});
+    else{
+      res.status(200).json({message:"User deleted successfully"});
+      console.log("User deleted:",user.email);
+    }
+  }
+  catch(err){
+    console.error("Error in /delete:",err.message);
+    res.status(500).json({error:"Internal server error"})
+  }
+});
+
+
+//API for Update User
+app.patch('/user',async (req,res)=>{
+  const data=req.body;
+  try{
+    const userId=data._id;
+   const user= await User.findByIdAndUpdate({_id:userId},data,{returnDocument:"before"});
+   //This Return Document is part of Options which returns the value to const variable "before" update or "after" update
+console.log(user);
+    res.send("User Updated Succesfully");
+  }
+  catch(err){
+    console.log(err.message);
+    res.status(400).send("Something Went Wrong");
+  }
+})
