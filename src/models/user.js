@@ -10,8 +10,14 @@ const userSchema=new mongoose.Schema({
             throw new Error("Gender Data Not Valid");
         }
     }},
-    about:{type:String,default:"Description Not Available",maxlength:300}
-});
+    about:{type:String,default:"Description Not Available",maxlength:300},
+   
+},
+{
+    timestamps:true
+}
+
+);
 
 
 module.exports=mongoose.model("User",userSchema);; 

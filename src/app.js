@@ -9,7 +9,6 @@ connectDB()
     console.log("Server is running on port 3000");
 }));
 app.post('/signup',async (req,res)=>{
-  //accessing the request body for User Data
   try {
     const { firstName, lastName, email, password, age, gender } = req.body;
 
@@ -25,7 +24,7 @@ app.post('/signup',async (req,res)=>{
     }
 
 
-    // Create and save new user
+    // Create and save new user from its model
     //here key Names are same as the model keys so we can directly pass the req.body to the model
     const newUser = new User({
       firstName,
@@ -36,8 +35,8 @@ app.post('/signup',async (req,res)=>{
       gender
     });
 
-    await newUser.save();
-    console.log(' User created:', newUser.email);
+   const insertedDocument= await newUser.save();
+    console.log(' User created:', insertedDocument);
 
     res.status(201).json({ message: 'User created successfully' });
   } catch (err) {
@@ -112,6 +111,7 @@ app.patch('/user', async (req, res) => {
 
     if (data._id) {
       user = await User.findByIdAndUpdate(data._id, data, { new: true,runValidators:true },);
+      //model.findbyIDAndUpdate(id,update,options) here runvalidate runs the validator function for update too
     } else if (data.email) {
       user = await User.findOneAndUpdate({ email: data.email }, data, { new: true ,runValidators:true});
     } else {
