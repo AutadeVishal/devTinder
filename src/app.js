@@ -2,13 +2,48 @@ const express = require('express');
 const app = express();
 const connectDB=require('./config/database');
 const User=require('./models/user');
-
+const mongoose = require('mongoose');
 app.use(express.json());//converts the incoming request body to JSON format
 connectDB()
 .then(()=>app.listen(3000, () => {
     console.log("Server is running on port 3000");
 }));
-app.post('/signup',async (req,res)=>{
+
+app.patch('/user/:identifier', async (req, res) => {
+  const data = req.body;
+  const identifier = req.params?.identifier; // Can be email or user ID
+  try {
+    const allowedUpdates = ["firstName", "lastName", "age", "password", "skills"];
+    const isUpdateAllowed = Object.keys(data).every(k => allowedUpdates.includes(k));
+    if (!isUpdateAllowed) {
+      throw new Error("Update Not Allowed");
+    }
+    if(data?.skills.length>3){
+      throw new Error("Skills should be less than 3");
+    }
+    let user;
+
+    if (mongoose.Types.ObjectId.isValid(identifier)) {
+      // If identifier is a valid ObjectId, treat it as user ID
+      user = await User.findByIdAndUpdate(identifier, data, { new: true, runValidators: true });
+    } else {
+      // Otherwise, treat it as email
+      user = await User.findOneAndUpdate({ email: identifier }, data, { new: true, runValidators: true });
+    }
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    console.log("Updated user:", user);
+    res.send("User Updated Successfully");
+  } catch (err) {
+    console.log("Error in /user PATCH:", err.message);
+    res.status(400).send("Something Went Wrong");
+  }
+});
+
+app.post('/signup',async (req,res)=>{ 
   try {
     const { firstName, lastName, email, password, age, gender } = req.body;
 
@@ -25,7 +60,7 @@ app.post('/signup',async (req,res)=>{
 
 
     // Create and save new user from its model
-    //here key Names are same as the model keys so we can directly pass the req.body to the model
+    //here key Names are same as the model keys so we can directly pass the req.body to the model instead of key:value pairs
     const newUser = new User({
       firstName,
       lastName,
@@ -100,32 +135,3 @@ app.delete('/delete',async (req,res)=>{
   }
 });
 
-
-const mongoose = require('mongoose');
-
-app.patch('/user', async (req, res) => {
-  const data = req.body;
-  console.log(data);
-  try {
-    let user;
-
-    if (data._id) {
-      user = await User.findByIdAndUpdate(data._id, data, { new: true,runValidators:true },);
-      //model.findbyIDAndUpdate(id,update,options) here runvalidate runs the validator function for update too
-    } else if (data.email) {
-      user = await User.findOneAndUpdate({ email: data.email }, data, { new: true ,runValidators:true});
-    } else {
-      return res.status(400).json({ error: "Missing identifier (_id or email)" });
-    }
-
-    if (!user) {
-      return res.status(404).json({ error: "User not found" });
-    }
-
-    console.log("Updated user:", user);
-    res.send("User Updated Successfully");
-  } catch (err) {
-    console.log("Error in /user PATCH:", err.message);
-    res.status(400).send("Something Went Wrong");
-  }
-});
