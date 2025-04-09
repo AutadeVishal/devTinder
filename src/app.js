@@ -3,26 +3,42 @@ const app = express();
 const connectDB=require('./config/database');
 const User=require('./models/user');
 const mongoose = require('mongoose');
+const bcrypt=require('bcrypt');
+const  validateSignUpData  = require('./utils/validation');
+const validUpdate = require('./utils/validUpdate.js');
 app.use(express.json());//converts the incoming request body to JSON format
 connectDB()
 .then(()=>app.listen(3000, () => {
     console.log("Server is running on port 3000");
 }));
+app.post('/login',async (req,res)=>{
+try{
+const {email,password}=req.body;
+const user=await User.findOne({email:email});
+if(!user){
+  throw new Error("User Not Found");
+}
+const isPasswordValid=bcrypt.compareSync(password,user.password);
+if(!isPasswordValid){
+  throw new Error("Invalid Password");
+}
 
+  res.send("Login Successful");
+  console.log("User logged in:",user.email);
+}
+catch(err){
+    console.error("Error in /login:",err.message);
+    res.send(err.message);
+}
+});
 app.patch('/user/:identifier', async (req, res) => {
   const data = req.body;
   const identifier = req.params?.identifier; // Can be email or user ID
   try {
-    const allowedUpdates = ["firstName", "lastName", "age", "password", "skills"];
-    const isUpdateAllowed = Object.keys(data).every(k => allowedUpdates.includes(k));
-    if (!isUpdateAllowed) {
-      throw new Error("Update Not Allowed");
-    }
-    if(data?.skills.length>3){
-      throw new Error("Skills should be less than 3");
-    }
+   validUpdate(data);
     let user;
-
+    const hashedPassword=await bcrypt.hash(data.password,10);
+    data.password=hashedPassword;
     if (mongoose.Types.ObjectId.isValid(identifier)) {
       // If identifier is a valid ObjectId, treat it as user ID
       user = await User.findByIdAndUpdate(identifier, data, { new: true, runValidators: true });
@@ -34,42 +50,31 @@ app.patch('/user/:identifier', async (req, res) => {
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
-
     console.log("Updated user:", user);
     res.send("User Updated Successfully");
   } catch (err) {
     console.log("Error in /user PATCH:", err.message);
-    res.status(400).send("Something Went Wrong");
+    res.status(400).send(err.message);
   }
 });
 
 app.post('/signup',async (req,res)=>{ 
+
   try {
-    const { firstName, lastName, email, password, age, gender } = req.body;
-
-    // Basic input validation
-    if (!firstName || !lastName || !email || !password) {
-      return res.status(400).json({ error: 'Missing required fields' });
-    }
-
-    // Check if user already exists
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      return res.status(409).json({ error: 'User with this email already exists' });
-    }
-
-
-    // Create and save new user from its model
+   
+   await validateSignUpData(req.body); // Validate the input data
+   const passwordHash=await bcrypt.hash(req.body.password,10);
+   const { firstName, lastName, email, password, age, gender } = req.body;
     //here key Names are same as the model keys so we can directly pass the req.body to the model instead of key:value pairs
     const newUser = new User({
       firstName,
       lastName,
       email,
-      password, 
+      password:passwordHash, 
       age,
       gender
     });
-
+    
    const insertedDocument= await newUser.save();
     console.log(' User created:', insertedDocument);
 
