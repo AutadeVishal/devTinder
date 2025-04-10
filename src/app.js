@@ -3,14 +3,30 @@ const app = express();
 const connectDB=require('./config/database');
 const User=require('./models/user');
 const mongoose = require('mongoose');
+const cookieParser=require('cookie-parser');
 const bcrypt=require('bcrypt');
 const  validateSignUpData  = require('./utils/validation');
 const validUpdate = require('./utils/validUpdate.js');
-app.use(express.json());//converts the incoming request body to JSON format
+const jwt = require('jsonwebtoken');
+const userAuth=require("./middlewares/auth.js");
+app.use(express.json());
+app.use(cookieParser());//converts the incoming request body to JSON format
 connectDB()
 .then(()=>app.listen(3000, () => {
     console.log("Server is running on port 3000");
 }));
+
+app.get('/profile',userAuth, async (req, res) => {
+  try {
+    const user=req.user;
+    res.send(user);
+  } catch (err) {
+    console.error("Error in /profile:", err.message);
+    res.status(401).send("Invalid or expired token");
+  }
+});
+
+
 app.post('/login',async (req,res)=>{
 try{
 const {email,password}=req.body;
@@ -18,11 +34,14 @@ const user=await User.findOne({email:email});
 if(!user){
   throw new Error("User Not Found");
 }
-const isPasswordValid=bcrypt.compareSync(password,user.password);
+const isPasswordValid=await user.validatePassword(password);
 if(!isPasswordValid){
   throw new Error("Invalid Password");
 }
-
+  //const token=await jwt.sign({_id:user._id},"1234"); This can be ofloaded to user.js
+  const token=await user.getJWT();
+  console.log("Token generated:",token);
+  res.cookie('token',token);
   res.send("Login Successful");
   console.log("User logged in:",user.email);
 }

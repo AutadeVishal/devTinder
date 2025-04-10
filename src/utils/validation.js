@@ -14,7 +14,7 @@ const validateSignUpData = async (data) => {
 
   if (!validator.isEmail(email)) {
     throw new Error("Email is not valid");
-  }
+  }//is checked at schema level but still doing it for learning purpose
 
   const userExists = await User.findOne({ email });
   if (userExists) {
