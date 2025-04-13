@@ -5,10 +5,15 @@ const User=require('./models/user');
 const mongoose = require('mongoose');
 const cookieParser=require('cookie-parser');
 const bcrypt=require('bcrypt');
-const  validateSignUpData  = require('./utils/validation');
+
 const validUpdate = require('./utils/validUpdate.js');
 const jwt = require('jsonwebtoken');
-const userAuth=require("./middlewares/auth.js");
+const {validateSignUpData}=require("./middlewares/auth.js");
+
+
+//routers
+const authRouter=require('./routes/auth.js');
+const profileRouter=require('./routes/profile.js');
 app.use(express.json());
 app.use(cookieParser());//converts the incoming request body to JSON format
 connectDB()
@@ -16,40 +21,27 @@ connectDB()
     console.log("Server is running on port 3000");
 }));
 
-app.get('/profile',userAuth, async (req, res) => {
-  try {
-    const user=req.user;
-    res.send(user);
-  } catch (err) {
-    console.error("Error in /profile:", err.message);
-    res.status(401).send("Invalid or expired token");
-  }
-});
+
+//calling Routers
+app.use('/auth',authRouter);
+app.use('/profile',profileRouter);
 
 
-app.post('/login',async (req,res)=>{
-try{
-const {email,password}=req.body;
-const user=await User.findOne({email:email});
-if(!user){
-  throw new Error("User Not Found");
-}
-const isPasswordValid=await user.validatePassword(password);
-if(!isPasswordValid){
-  throw new Error("Invalid Password");
-}
-  //const token=await jwt.sign({_id:user._id},"1234"); This can be ofloaded to user.js
-  const token=await user.getJWT();
-  console.log("Token generated:",token);
-  res.cookie('token',token);
-  res.send("Login Successful");
-  console.log("User logged in:",user.email);
-}
-catch(err){
-    console.error("Error in /login:",err.message);
-    res.send(err.message);
-}
-});
+
+
+
+
+
+
+
+
+
+
+
+
+/*
+
+
 app.patch('/user/:identifier', async (req, res) => {
   const data = req.body;
   const identifier = req.params?.identifier; // Can be email or user ID
@@ -77,37 +69,7 @@ app.patch('/user/:identifier', async (req, res) => {
   }
 });
 
-app.post('/signup',async (req,res)=>{ 
 
-  try {
-   
-   await validateSignUpData(req.body); // Validate the input data
-   const passwordHash=await bcrypt.hash(req.body.password,10);
-   const { firstName, lastName, email, password, age, gender } = req.body;
-    //here key Names are same as the model keys so we can directly pass the req.body to the model instead of key:value pairs
-    const newUser = new User({
-      firstName,
-      lastName,
-      email,
-      password:passwordHash, 
-      age,
-      gender
-    });
-    
-   const insertedDocument= await newUser.save();
-    console.log(' User created:', insertedDocument);
-
-    res.status(201).json({ message: 'User created successfully' });
-  } catch (err) {
-    console.error('Error in /signup:', err.message);
-    res.status(500).json({ error: err.message });
-  }
-
-
-  
-  
-
-});
 
 //Get User by Email
 app.get('/user',async (req,res)=>{
@@ -158,4 +120,4 @@ app.delete('/delete',async (req,res)=>{
     res.status(500).json({error:"Internal server error"})
   }
 });
-
+*/

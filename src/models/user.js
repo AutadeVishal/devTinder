@@ -31,14 +31,15 @@ const userSchema=new mongoose.Schema({
 
 );
 userSchema.methods.getJWT=async function (){
-    const token=await jwt.sign({_id:this._id},"1234");
+    const token=await jwt.sign({password:this.password},"1234");
     return token;
 };
-userSchema.methods.validatePassword=async function(password){
-    const user=this;
-    const isPasswordValid=bcrypt.compare(password,user.password);
-if(!isPasswordValid){
-  throw new Error("Invalid Password");
-}
-}
+userSchema.methods.validatePassword = async function (password) {
+    const user = this;
+    const isPasswordValid = await bcrypt.compare(password, user.password); // Add `await`
+    if (!isPasswordValid) {
+      throw new Error("Invalid Password");
+    }
+    return isPasswordValid; // Return the result
+  };
 module.exports=mongoose.model("User",userSchema);; 

@@ -1,6 +1,7 @@
 const jwt=require('jsonwebtoken');
 const User=require("../models/user.js");
-module.exports =  async (req, res, next) => {
+
+const  userAuth= async (req, res, next) => {
         try{
             const {token}=req.cookies;
             if(!token){
@@ -8,9 +9,7 @@ module.exports =  async (req, res, next) => {
             }
             console.log("userauth found token",token);
             const decodedObj=await jwt.verify(token,"1234");
-            console.log(decodedObj)
-             const user=await User.findOne({_id:decodedObj._id});
-             console.log("user from decoded OBj",user)
+             const user=await User.findOne({password:decodedObj.password});
              if(!user){
                 throw new Error("User not Found");
              }
@@ -23,4 +22,4 @@ module.exports =  async (req, res, next) => {
         }
        
     };
-
+module.exports={userAuth};

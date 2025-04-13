@@ -29,5 +29,9 @@ const validateSignUpData = async (data) => {
     throw new Error("Password must be at least 8 characters long");
   }
 };
-
-module.exports = validateSignUpData;
+const validateEditProfileData=async (data)=>{
+const allowedEditFields=["firstName","lastName","age","skills","about"];
+const isEditAllowed=Object.keys(data).every(k=>allowedEditFields.includes(k));
+return isEditAllowed;
+}
+module.exports = {validateEditProfileData,validateSignUpData};
