@@ -1,5 +1,5 @@
 const validator = require("validator");
-const User = require("../models/user");
+const User = require("../models/User");
 
 const validateSignUpData = async (data) => {
   const { firstName, lastName, email, password } = data;

@@ -1,7 +1,7 @@
 //Routes Specific to Authorisation Routers
 const express=require('express');
 const authRouter=express.Router();
-const User=require('../models/user.js')
+const User=require('../models/User.js')
 const bcrypt=require('bcrypt')
 
 
@@ -42,22 +42,24 @@ authRouter.post('/signup',async (req,res)=>{
 authRouter.post('/login',async (req,res)=>{
 try{
 const {email,password}=req.body;
-const user=await User.findOne({email:email});
+const user=await User.findOne({email});
 if(!user){
   throw new Error("User Not Found");
 }
 const isPasswordValid=await user.validatePassword(password);
-if(!isPasswordValid){ //saying password invalid so i removed this check
+if(!isPasswordValid){
   throw new Error("Invalid Password");
 }
   //const token=await jwt.sign({_id:user._id},"1234"); This can be ofloaded to user.js
   const token=await user.getJWT();
-  console.log("Token generated:",token);
-  res.cookie('token',token,{
-    expires:new Date(Date.now()+8*3600000)
-  });
-  res.send("Login Successful");
+  res.cookie('token',token);
   console.log("User logged in:",user.email);
+  res.json({
+    Token:`Token Generated ${token}`,
+    Message:`Login Succesfull`
+  });
+ 
+  
 }
 catch(err){
     console.error("Error in /login:",err.message);

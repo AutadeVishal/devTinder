@@ -1,19 +1,20 @@
 const express = require('express');
 const app = express();
 const connectDB=require('./config/database');
-const User=require('./models/user');
+const User=require('./models/User.js');
 const mongoose = require('mongoose');
 const cookieParser=require('cookie-parser');
 const bcrypt=require('bcrypt');
 
-const validUpdate = require('./utils/validUpdate.js');
-const jwt = require('jsonwebtoken');
-const {validateSignUpData}=require("./middlewares/auth.js");
+//const validUpdate = require('./utils/validUpdate.js');
+//const jwt = require('jsonwebtoken');
+//const {validateSignUpData}=require("./middlewares/auth.js");
 
 
 //routers
 const authRouter=require('./routes/auth.js');
 const profileRouter=require('./routes/profile.js');
+const requestRouter=require('./routes/connectionRequestRouter.js')
 app.use(express.json());
 app.use(cookieParser());//converts the incoming request body to JSON format
 connectDB()
@@ -25,6 +26,7 @@ connectDB()
 //calling Routers
 app.use('/auth',authRouter);
 app.use('/profile',profileRouter);
+app.use('/connection',requestRouter);
 
 
 
@@ -59,7 +61,7 @@ app.patch('/user/:identifier', async (req, res) => {
     }
 
     if (!user) {
-      return res.status(404).json({ error: "User not found" });
+       res.status(404).json({ error: "User not found" });
     }
     console.log("Updated user:", user);
     res.send("User Updated Successfully");

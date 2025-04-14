@@ -1,8 +1,10 @@
 const express=require('express');
 const profileRouter=express.Router();
-const User=require('../models/user.js');
+const User=require('../models/User.js');
 const {validateEditProfileData}=require('../utils/validation.js')
-const {userAuth}=require('../middlewares/auth.js')
+const userAuth=require('../middlewares/userAuth.js')
+
+
 profileRouter.get('/view',userAuth, async (req, res) => {
   try {
     const user=req.user;
@@ -12,6 +14,9 @@ profileRouter.get('/view',userAuth, async (req, res) => {
     res.status(401).send("Invalid or expired token");
   }
 });
+
+
+
 
 profileRouter.patch('/edit',userAuth,async (req,res)=>{
 try{
@@ -24,10 +29,11 @@ if(!validateEditProfileData(data)){
 };
 const loggedInUser=req.user;//this is provided by middlewre userAuth funciton
 Object.keys(req.user).forEach(key=>loggedInUser[key]=req.user[key]);
-const user = await User.findByIdAndUpdate(req.user._id, data, { new: true, runValidators: true });
+const user = await User.findByIdAndUpdate(loggedInUser._id, data, { new: true, runValidators: true });
+console.log(`User ${user.firstName} ${user.lastName} got Updated Successfully`)
 res.json({
-  message:`${loggedInUser.firstName},your Profile Got Updated `,
-  data:loggedInUser,
+  message:`${user.firstName},your Profile Got Updated `,
+  data:user,
 });
 }catch(err){
 console.log("Error in Updating :",err.message);
