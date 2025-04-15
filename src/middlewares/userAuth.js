@@ -24,7 +24,8 @@ module.exports = async (req, res, next) => {
 
         // Attach the user to req.user
         req.user = user;
-        next();
+       next(); 
+       //async don't have compulsion of next()
     } catch (err) {
         console.log(err.message);
         res.status(401).send(err.message);

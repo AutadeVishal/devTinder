@@ -28,7 +28,6 @@ if(!validateEditProfileData(data)){
   throw new Error("Not Allowed to Edit the Fields");
 };
 const loggedInUser=req.user;//this is provided by middlewre userAuth funciton
-Object.keys(req.user).forEach(key=>loggedInUser[key]=req.user[key]);
 const user = await User.findByIdAndUpdate(loggedInUser._id, data, { new: true, runValidators: true });
 console.log(`User ${user.firstName} ${user.lastName} got Updated Successfully`)
 res.json({

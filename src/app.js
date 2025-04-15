@@ -1,10 +1,7 @@
 const express = require('express');
 const app = express();
 const connectDB=require('./config/database');
-const User=require('./models/User.js');
-const mongoose = require('mongoose');
 const cookieParser=require('cookie-parser');
-const bcrypt=require('bcrypt');
 
 //const validUpdate = require('./utils/validUpdate.js');
 //const jwt = require('jsonwebtoken');
@@ -14,7 +11,8 @@ const bcrypt=require('bcrypt');
 //routers
 const authRouter=require('./routes/auth.js');
 const profileRouter=require('./routes/profile.js');
-const requestRouter=require('./routes/connectionRequestRouter.js')
+const requestRouter=require('./routes/connectionRequestRouter.js');
+const userRouter=require('./routes/userRoute.js');
 app.use(express.json());
 app.use(cookieParser());//converts the incoming request body to JSON format
 connectDB()
@@ -27,8 +25,8 @@ connectDB()
 app.use('/auth',authRouter);
 app.use('/profile',profileRouter);
 app.use('/connection',requestRouter);
-
-
+app.use('/user',userRouter);
+app.use('/request',userRouter);
 
 
 
