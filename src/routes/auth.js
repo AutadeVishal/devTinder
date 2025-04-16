@@ -12,7 +12,7 @@ authRouter.post('/signup',async (req,res)=>{
    
    await validateSignUpData(req.body); // Validate the input data
    const passwordHash=await bcrypt.hash(req.body.password,10);
-   const { firstName, lastName, email, password, age, gender } = req.body;
+   const { firstName, lastName, email, password, age, gender,skills } = req.body;
 
    const user=await User.findOne({email:req.body.email});
    if(user) {
@@ -25,7 +25,8 @@ authRouter.post('/signup',async (req,res)=>{
       email,
       password:passwordHash, 
       age,
-      gender
+      gender,
+      skills
     });
     
    const insertedDocument= await newUser.save();

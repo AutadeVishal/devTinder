@@ -25,9 +25,7 @@ connectDB()
 app.use('/auth',authRouter);
 app.use('/profile',profileRouter);
 app.use('/connection',requestRouter);
-app.use('/user',userRouter);
 app.use('/request',userRouter);
-
 
 
 

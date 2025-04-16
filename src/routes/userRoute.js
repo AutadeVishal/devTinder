@@ -2,7 +2,7 @@ const express = require('express');
 const userRouter = express.Router();
 const connectionRequestModel = require('../models/connectionRequest.js');
 const userAuth = require('../middlewares/userAuth.js');
-
+const User=require("../models/User.js")
 
 
 
@@ -71,4 +71,51 @@ userRouter.get('/connections', userAuth, async (req, res) => {
     }
 });
 
-module.exports = userRouter;
+    userRouter.get('/feed', userAuth, async (req, res) => {
+        try {
+            const loggedInUser = req.user;
+            let page = parseInt(req.query.page) || 1;
+            let limit = parseInt(req.query.limit);
+            limit = limit > 50 ? 50 : limit;
+    
+            console.log("Logged-in User Skills:", loggedInUser.skills);
+    
+            const connectionRequests = await connectionRequestModel.find({
+                $or: [
+                    { fromUserId: loggedInUser._id },
+                    { toUserId: loggedInUser._id }
+                ]
+            }).select("fromUserId toUserId");
+    
+            const hideUsersFromFeed = new Set();
+            connectionRequests.forEach(req => {
+                hideUsersFromFeed.add(req.fromUserId);
+                hideUsersFromFeed.add(req.toUserId);
+            });
+            console.log("Hide Users From Feed:", Array.from(hideUsersFromFeed));
+    
+            const usersToShow = await User.find({
+                $and: [
+                    { _id: { $nin: Array.from(hideUsersFromFeed) } },
+                    { _id: { $ne: loggedInUser._id } },
+                    loggedInUser.skills.length > 0
+                        ? { skills: { $in: loggedInUser.skills } }
+                        : { skills: { $exists: true } }
+                ]
+            })
+            .select("firstName lastName")
+            .skip((page - 1) * limit)
+            .limit(limit);
+    
+            console.log("Users to Show:", usersToShow);
+    
+            res.json({
+                message: "Feed : ",
+                data: usersToShow
+            });
+        } catch (err) {
+            console.log("Some Error In /feed:", err.message);
+            res.status(404).send("Error Occurred");
+        }
+});
+module.exports=userRouter;
